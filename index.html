@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Ma princesse — l'amour qui voyage avec toi</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600&family=Great+Vibes&display=swap');
+
+  :root{
+    --bg-dark:#040012;
+    --violet-1:#2f0038;
+    --violet-2:#3e0b46;
+    --accent:#c9a6f8;
+    --gold:#e6bf48;
+    --cream:#f6ede6;
+    --glass: rgba(255,255,255,0.03);
+    --flag-size:54px;
+    --card-radius:16px;
+  }
+
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    font-family:"Playfair Display", serif;
+    -webkit-font-smoothing:antialiased;
+    background: linear-gradient(180deg,#020010 0%, #08030b 100%);
+    color:var(--cream);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:18px;
+  }
+
+  /* Canvas de estrellas */
+  #stars { position:fixed; inset:0; z-index:0; pointer-events:none; }
+
+  .wrap { width:100%; max-width:1040px; position:relative; z-index:2; }
+
+  /* Intro overlay */
+  .intro {
+    position:fixed; inset:0; z-index:9;
+    display:flex; align-items:center; justify-content:center;
+    background: linear-gradient(180deg, rgba(6,2,20,0.88), rgba(0,0,0,0.94));
+    backdrop-filter: blur(4px);
+    flex-direction:column; gap:14px; text-align:center; padding:22px;
+  }
+  .intro h1{
+    font-family:'Great Vibes', cursive;
+    color:var(--gold); font-size:3rem; text-shadow:0 0 18px rgba(230,191,72,0.18);
+  }
+  .intro p{ max-width:760px; color:#eadfd6; font-size:1.02rem; line-height:1.45 }
+  .btn-enter{
+    margin-top:8px; padding:12px 26px; border-radius:999px;
+    background: linear-gradient(180deg, rgba(201,158,247,0.18), rgba(201,158,247,0.06));
+    border:1px solid rgba(201,158,247,0.26);
+    color:#fff; font-weight:700; cursor:pointer; box-shadow:0 10px 28px rgba(45,8,80,0.45);
+  }
+
+  /* Card layout */
+  .card{
+    border-radius:var(--card-radius);
+    overflow:hidden;
+    background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+    border:1px solid rgba(201,158,247,0.05);
+    box-shadow: 0 18px 60px rgba(0,0,0,0.7);
+  }
+
+  .topbar{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:16px 20px; gap:12px;
+  }
+  .title{
+    font-family:'Great Vibes', cursive; color:var(--gold); font-size:1.6rem;
+  }
+  .subtitle{ color:#dcd0c8; font-size:0.95rem; opacity:0.95 }
+
+  .main-area{ display:flex; gap:16px; padding:22px; align-items:flex-start; min-height:62vh; position:relative; }
+
+  .panel{
+    flex:1 1 720px; position:relative; border-radius:12px; padding:24px;
+    background:var(--glass); border:1px solid rgba(255,255,255,0.02); box-shadow: inset 0 1px 0 rgba(255,255,255,0.02);
+    overflow:auto; z-index:3;
+  }
+
+  .country { color:var(--gold); font-weight:700; font-size:1.05rem; margin-bottom:10px; }
+  .section-title { color:var(--accent); font-weight:600; margin-bottom:10px; }
+  .fr { font-size:1.12rem; line-height:1.7; color:#f3eae5; margin-bottom:12px; text-align:justify; }
+  .es { font-size:1.02rem; line-height:1.6; color:#eadfd6; opacity:0.95; margin-bottom:14px; font-style:italic; text-align:justify; }
+  .from { text-align:right; color:var(--gold); font-family:'Great Vibes'; font-size:1.1rem; margin-top:6px; }
+
+  /* right nav flags */
+  .nav { width:140px; display:flex; flex-direction:column; gap:12px; align-items:center; z-index:4; }
+  .flag-btn{
+    width:var(--flag-size); height:var(--flag-size); border-radius:999px;
+    border:2px solid rgba(255,255,255,0.05); display:inline-flex; align-items:center; justify-content:center;
+    font-size:26px; cursor:pointer; background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(0,0,0,0.06));
+    box-shadow: 0 10px 22px rgba(20,4,40,0.5);
+  }
+  .flag-btn.active{ outline:3px solid rgba(201,158,247,0.2); transform:scale(1.03); }
+
+  .hint{ margin-top:6px; font-size:0.9rem; color:#d9cfc7; opacity:0.95; text-align:center }
+
+  footer.note { text-align:center; margin-top:12px; color:rgba(230,191,72,0.9); font-family:'Great Vibes'; padding:10px 0; }
+
+  /* background tints / landmark */
+  .bg-tint { position:absolute; inset:0; z-index:1; pointer-events:none; background-blend-mode:multiply; }
+  .landmark { position:absolute; left:50%; top:45%; transform:translate(-50%,-50%); font-size:160px; opacity:0.08; z-index:1; pointer-events:none; }
+
+  .t-ams { background: radial-gradient(circle at 30% 30%, rgba(200,120,240,0.13), transparent 8%), linear-gradient(180deg, rgba(28,6,46,0.6), rgba(10,3,28,0.88)); }
+  .t-sui { background: radial-gradient(circle at 70% 30%, rgba(190,110,240,0.11), transparent 8%), linear-gradient(180deg, rgba(22,6,40,0.6), rgba(6,3,26,0.88)); }
+  .t-nor { background: radial-gradient(circle at 50% 80%, rgba(210,140,250,0.10), transparent 8%), linear-gradient(180deg, rgba(20,6,42,0.6), rgba(8,3,26,0.88)); }
+
+  @media (max-width:860px){
+    .main-area{ flex-direction:column; padding:16px; gap:14px }
+    .nav { flex-direction:row; width:auto; order:2; justify-content:center; }
+    .flag-btn{ width:44px; height:44px; font-size:18px; }
+    .panel{ order:1; min-height:52vh; }
+    .landmark{ font-size:120px }
+  }
+</style>
+</head>
+<body>
+  <canvas id="stars"></canvas>
+
+  <div class="wrap">
+    <!-- intro -->
+    <section class="intro" id="intro">
+      <h1>Ma princesse</h1>
+      <p><strong>l'amour qui voyage avec toi</strong><br>
+      Un geste, deux voix — je t'écris pour te dire que j'irai où tu voudras.  
+      Appuie sur <em>Entrer</em> pour commencer.</p>
+      <button class="btn-enter" id="enterBtn">Entrer</button>
+    </section>
+
+    <!-- card -->
+    <article class="card" id="rootCard" aria-hidden="true">
+      <div class="topbar">
+        <div>
+          <div class="title">Ma princesse — l'amour qui voyage avec toi</div>
+          <div class="subtitle">Ámsterdam, Suisse, Norvège — Ida & Réponse</div>
+        </div>
+        <div style="text-align:right"><div style="font-size:0.85rem;color:#e9dbd0">❤ En français • Traduction en español</div></div>
+      </div>
+
+      <div class="main-area">
+        <div class="bg-tint t-ams" id="bgTint"></div>
+        <div class="landmark" id="landmark">🚲</div>
+
+        <section class="panel" id="panel">
+          <div class="country" id="country">Amsterdam — Amsterdam</div>
+
+          <!-- SECTION: TU (IDA) -->
+          <div class="section-title">Moi — (Ton message)</div>
+          <div class="fr" id="textFr">
+            <!-- Ejemplo: puedes reemplazar este texto por tus propias palabras (en francés). -->
+            Je pense à toi au bord des canaux, aux vélos qui passent, et je me dis: partir ensemble, c'est mon rêve.
+          </div>
+          <div class="es" id="textEs">
+            <!-- Traducción de ejemplo: reemplaza por tu propia traducción si querés. -->
+            Pienso en ti junto a los canales, en las bicicletas que pasan, y me digo: partir juntos es mi sueño.
+          </div>
+
+          <!-- SECTION: ELLA (RESPUESTA) -->
+          <div class="section-title">Elle — (Réponse)</div>
+          <div class="fr" id="respFr">
+            <!-- Ejemplo: texto de respuesta en francés. Reemplaza con lo que quieras que diga "ella". -->
+            J'entends ta promesse comme une chanson douce; je voudrais marcher à tes côtés dans chaque rue.
+          </div>
+          <div class="es" id="respEs">
+            <!-- Traducción de ejemplo. -->
+            Escucho tu promesa como una canción dulce; quisiera caminar a tu lado por cada calle.
+          </div>
+
+          <div class="from" id="sign">— Ton amoureux / Ta voix</div>
+        </section>
+
+        <aside class="nav" aria-label="Navigation par pays">
+          <button class="flag-btn active" data-i="0" title="Amsterdam">🇳🇱</button>
+          <button class="flag-btn" data-i="1" title="Suisse">🇨🇭</button>
+          <button class="flag-btn" data-i="2" title="Norvège">🇳🇴</button>
+          <div class="hint">Choisissez un pays</div>
+        </aside>
+      </div>
+
+      <footer class="note">Ma princesse — où que tu ailles, j'irai avec toi.</footer>
+    </article>
+  </div>
+
+<script>
+/* Stars background animation */
+(function(){
+  const canvas = document.getElementById('stars');
+  const ctx = canvas.getContext('2d');
+  let w = canvas.width = innerWidth;
+  let h = canvas.height = innerHeight;
+  const stars = [];
+  const count = Math.round((w*h)/42000);
+  for(let i=0;i<count;i++){
+    stars.push({
+      x: Math.random()*w,
+      y: Math.random()*h,
+      r: Math.random()*1.6+0.4,
+      vx: (Math.random()*0.6-0.3),
+      vy: (Math.random()*0.25-0.12),
+      a: Math.random()*0.7+0.15
+    });
+  }
+  function resize(){ w = canvas.width = innerWidth; h = canvas.height = innerHeight; }
+  addEventListener('resize', resize);
+  function draw(){
+    ctx.clearRect(0,0,w,h);
+    for(const s of stars){
+      s.x += s.vx; s.y += s.vy;
+      if(s.x < 0) s.x = w;
+      if(s.x > w) s.x = 0;
+      if(s.y < 0) s.y = h;
+      if(s.y > h) s.y = 0;
+      ctx.beginPath();
+      ctx.fillStyle = 'rgba(201,158,247,'+s.a+')';
+      ctx.arc(s.x, s.y, s.r, 0, Math.PI*2);
+      ctx.fill();
+    }
+    requestAnimationFrame(draw);
+  }
+  draw();
+})();
+
+/* Data for the three places — texts are examples and safe (no contenido sexual/posesivo) */
+const data = [
+  {
+    id:'ams', name:'Amsterdam — Amsterdam', landmark:'🚲', tint:'t-ams',
+    youFr:`Je pense à toi au bord des canaux, aux vélos qui passent, et je me dis: partir ensemble, c'est mon rêve.`,
+    youEs:`Pienso en ti junto a los canales, en las bicicletas que pasan; partir juntos es mi sueño.`,
+    herFr:`J'entends ta promesse comme une chanson douce; je voudrais marcher à tes côtés dans chaque rue.`,
+    herEs:`Escucho tu promesa como una canción dulce; quisiera caminar a tu lado por cada calle.`
+  },
+  {
+    id:'sui', name:'Suisse — Suiza', landmark:'🏔️', tint:'t-sui',
+    youFr:`Au pied des montagnes, je t'imagine blottie contre moi, et je promets de construire un futur paisible à tes côtés.`,
+    youEs:`A los pies de las montañas te imagino acurrucada a mi lado; prometo construir un futuro tranquilo junto a ti.`,
+    herFr:`La douceur des lacs me rappelle ta voix; oui, venons bâtir un foyer où le temps sourit.`,
+    herEs:`La suavidad de los lagos me recuerda tu voz; sí, construyamos un hogar donde el tiempo sonría.`
+  },
+  {
+    id:'nor', name:'Norvège — Noruega', landmark:'✨', tint:'t-nor',
+    youFr:`Sous les aurores, je rêve de tenir ta main; que les lumières du ciel gardent nos promesses.`,
+    youEs:`Bajo las auroras sueño con tomar tu mano; que las luces del cielo custodien nuestras promesas.`,
+    herFr:`Si les étoiles brillent pour nous, alors je traverserai les nuits pour être près de toi.`,
+    herEs:`Si las estrellas brillan por nosotros, entonces cruzaré las noches para estar a tu lado.`
+  }
+];
+
+/* UI */
+let idx = 0;
+const countryEl = document.getElementById('country');
+const textFrEl = document.getElementById('textFr');
+const textEsEl = document.getElementById('textEs');
+const respFrEl = document.getElementById('respFr');
+const respEsEl = document.getElementById('respEs');
+const signEl = document.getElementById('sign');
+const bgTint = document.getElementById('bgTint');
+const landmarkEl = document.getElementById('landmark');
+const flags = Array.from(document.querySelectorAll('.flag-btn'));
+const intro = document.getElementById('intro');
+const enterBtn = document.getElementById('enterBtn');
+const rootCard = document.getElementById('rootCard');
+const panel = document.getElementById('panel');
+
+function render(i){
+  const item = data[i];
+  countryEl.textContent = item.name;
+  textFrEl.textContent = item.youFr;
+  textEsEl.textContent = item.youEs;
+  respFrEl.textContent = item.herFr;
+  respEsEl.textContent = item.herEs;
+  signEl.textContent = '— Ton amoureux / Ta voix';
+  bgTint.className = 'bg-tint ' + item.tint;
+  landmarkEl.textContent = item.landmark;
+  flags.forEach(b => b.classList.remove('active'));
+  const active = flags.find(b => parseInt(b.dataset.i,10) === i);
+  if(active) active.classList.add('active');
+}
+
+flags.forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    idx = parseInt(btn.dataset.i,10);
+    render(idx);
+    panel.scrollTop = 0;
+  });
+});
+
+/* Enter */
+enterBtn.addEventListener('click', ()=>{
+  intro.style.display = 'none';
+  rootCard.setAttribute('aria-hidden','false');
+  setTimeout(()=>render(0),60);
+});
+
+/* keyboard nav */
+addEventListener('keydown', e=>{
+  if(intro && intro.style.display !== 'none') return;
+  if(e.key === 'ArrowRight'){ idx = Math.min(data.length-1, idx+1); render(idx); panel.scrollTop = 0; }
+  if(e.key === 'ArrowLeft'){ idx = Math.max(0, idx-1); render(idx); panel.scrollTop = 0; }
+});
+
+/* touch swipe (mobile) */
+(function(){
+  let sx=0, sy=0;
+  document.addEventListener('touchstart', e=>{ sx = e.changedTouches[0].screenX; sy = e.changedTouches[0].screenY; }, {passive:true});
+  document.addEventListener('touchend', e=>{
+    const dx = e.changedTouches[0].screenX - sx;
+    const dy = e.changedTouches[0].screenY - sy;
+    if(Math.abs(dx) > 40 && Math.abs(dy) < 80){
+      if(dx < 0){ idx = Math.min(data.length-1, idx+1); render(idx); panel.scrollTop = 0; }
+      else { idx = Math.max(0, idx-1); render(idx); panel.scrollTop = 0; }
+    }
+  }, {passive:true});
+})();
+
+/* init */
+render(0);
+</script>
+</body>
+  </html>
